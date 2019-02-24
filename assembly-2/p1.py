@@ -1,0 +1,19 @@
+ebp_p_0x08 = 0x04
+ebp_p_0xXc = 0x2d
+
+eax = ebp_p_0xXc
+ebp_m_0x04 = eax
+print "ebp_m_0x04", ebp_m_0x04
+
+eax = ebp_p_0x08
+ebp_m_0x08 = eax
+print ebp_m_0x08
+
+while(1):
+    if(ebp_p_0x08 <= 0x1d89):
+        ebp_m_0x04 += 1
+        ebp_p_0x08 += 0x64
+    else:
+        eax = ebp_m_0x04
+        print hex(eax)
+        break 
