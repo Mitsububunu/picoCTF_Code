@@ -1,0 +1,2 @@
+cd /tmp/
+ln -s /problems/absolutely-relative_0_d4f0f1c47f503378c4
