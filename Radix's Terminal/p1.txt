@@ -1,0 +1,5 @@
+
+strings radix | grep -x '.\{30,\}'
+
+echo "cGljb0NURntiQXNFXzY0X2VOQ29EaU5nX2lTX0VBc1lfMTk1MTA2ODN9" | base64 -d && echo
+

@@ -1,81 +1,71 @@
+import re
+import time
+import socket
 
 
-import json
+def first(sock):
+    res = sock.recv(250).decode('utf-8')
+    sock.send('248.0.40.3\n'.encode('utf-8'))
+    res = sock.recv(250).decode('utf-8')
+    res = res.split('\n')
+    return res
 
-from pwn import *
+
+def which(ip):
+    if ip == "159.244.90.48":
+        return "3\n"
+    if ip == "248.0.40.3":
+        return "4\n"
+    if ip == "109.165.249.213":
+        return "2\n"
 
 
-def main():
-    with open('incidents.json', 'r')as f:
-        json_string = json.load(f)
+def second(sock, first_res):
+    ip = re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',
+                   first_res[-2]).group()
+    ans = which(ip)
+    sock.send(ans.encode('utf-8'))
+    res = sock.recv(250).decode('utf-8')
+    res.split('\n')
+    return res
 
-    answer = 0.00
-    while True:
 
-        r = remote('2018shell1.picoctf.com', 10493)
-
-        print r.recvuntil("questions.") + "\n"
-
-        # Question 1
-
-        question_1 = r.recvuntil("ones.").strip()
-        print "The first question is: " + question_1
-
-	source_ip_list = []
-        for value in json_string["tickets"]:
-	    source_ip_list.append(value["src_ip"])
-
-        most_common_source_ip = max(set(source_ip_list), key=source_ip_list.count)
-	print most_common_source_ip
-        r.send(most_common_source_ip + "\n")
-        r.recv()
-        print "Result: " + r.recvline()
-        r.recvline()
-        r.recvline()
-
-        # Question 2
-
-        question_2 = r.recvuntil("?")
-
-        print "The second question is: " + question_2
-
-        ip_address = re.findall(r'[0-9]+(?:\.[0-9]+){3}', question_2)
-
-        unique_destination_ip_addresses = []
-        for value in json_string['tickets']:
-            if (value['src_ip'] == ip_address.__getitem__(0) 
-            and value['dst_ip'] not in unique_destination_ip_addresses):
-                unique_destination_ip_addresses.append(value['dst_ip'])
-
-        print str(len(unique_destination_ip_addresses))
-        r.send(str(len(unique_destination_ip_addresses)) + "\n")
-        r.recv()
-        print "Result: " + r.recvline()
-        r.recvline()
-        r.recvline()
-
-        # Question 3
-
-        question_3 = r.recvuntil("places.")
-
-        print("The third question is: " + question_3)
-
-        print "{:.2f}".format(answer)
-        r.send("{:.2f}".format(answer) + "\n")
-        r.recv()
-        result = r.recvline()
-        print "Result: " + result
-
-        if result == "Correct!\n":
-            print r.recv()
-            break
-        elif result == "Incorrect!\n":
-            r.close()
-            print "\nAnswer is incorrect retrying after 2 sec ...\n"
-            time.sleep(2)
-            answer += 0.01
-            continue
+def third(sock, ans):
+    ans = str(ans) + "\n"
+    sock.send(ans.encode('utf-8'))
+    res = sock.recv(250).decode('utf-8')
+    res = res.split('\n')
+    return res
 
 
 if __name__ == '__main__':
-    main()
+
+
+    port = 14079
+    host = "2018shell1.picoctf.com"
+
+    # Loop over third question
+    # for third_ans in [float(j)/100 for j in range(110, 1501, 1)] :
+    for third_ans in [1.28, 1.29] :
+
+        print("Trying", third_ans)
+
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        except socket.error as err:
+            print("socket creation failed with error %s" % (err))
+        sock.connect((host, port))
+
+        first_res = first(sock)
+
+        second_res = second(sock, first_res)
+
+        third_res = third(sock, third_ans)
+        print("THIRD----->", third_res)
+
+        if third_res[0] == "Correct!":
+            break
+
+        sock.close()
+
+        time.sleep(1.0)
