@@ -6,7 +6,7 @@ from pwn import *
 debug = 0
 
 user = 'mitsububunu'
-pw = 'v8wQpBt6AQ5mLQQ'
+pw = 'password'
 
 if debug:
   p = process('./vuln')
